@@ -6,6 +6,12 @@
     <title>India & States GDP Timeline (1947 - 2026)</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Enable class-based dark mode in Tailwind
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Hammer.js for touch gestures (required for mobile panning/zooming) -->
@@ -16,85 +22,93 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
         .legend-item {
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease;
         }
         .legend-item:hover {
             transform: scale(1.05);
         }
     </style>
 </head>
-<body class="text-slate-800 antialiased p-4 md:p-8">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 antialiased p-4 md:p-8">
 
     <div class="max-w-7xl mx-auto">
         <!-- Header Section -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 mb-6">
-            <h1 class="text-3xl md:text-4xl font-bold mb-3 text-slate-900">India & Key States GDP Growth (1947 - 2026)</h1>
-            <p class="text-slate-600 mb-6 text-lg">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8 mb-6 transition-colors duration-300">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-3">
+                <h1 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white transition-colors duration-300">India & Key States GDP Growth</h1>
+                
+                <!-- Dark Mode Toggle -->
+                <button id="themeToggle" class="mt-4 md:mt-0 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-semibold transition hover:bg-slate-300 dark:hover:bg-slate-600 flex items-center gap-2 shadow-sm">
+                    <span id="themeIcon">🌙</span> <span id="themeText">Dark Mode</span>
+                </button>
+            </div>
+            
+            <p class="text-slate-600 dark:text-slate-400 mb-6 text-lg transition-colors duration-300">
                 Tracing the economic trajectory of National GDP against major states: <strong>Maharashtra, Uttar Pradesh, and Tamil Nadu</strong>. Lines dynamically change color to represent the <strong>political party in power</strong>.
             </p>
             
             <!-- Custom Dynamic Legend -->
-            <div class="flex flex-wrap gap-3 mb-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <div class="legend-item flex items-center bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-200">
-                    <div class="w-4 h-4 bg-[#F97316] rounded-full mr-2 shadow-inner"></div><span class="font-medium text-xs md:text-sm">BJP / NDA</span>
+            <div class="flex flex-wrap gap-3 mb-4 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700 transition-colors duration-300">
+                <div class="legend-item flex items-center bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600">
+                    <div class="w-4 h-4 bg-[#F97316] rounded-full mr-2 shadow-inner"></div><span class="font-medium text-xs md:text-sm dark:text-slate-200">BJP / NDA</span>
                 </div>
-                <div class="legend-item flex items-center bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-200">
-                    <div class="w-4 h-4 bg-[#2563EB] rounded-full mr-2 shadow-inner"></div><span class="font-medium text-xs md:text-sm">Congress / UPA</span>
+                <div class="legend-item flex items-center bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600">
+                    <div class="w-4 h-4 bg-[#2563EB] rounded-full mr-2 shadow-inner"></div><span class="font-medium text-xs md:text-sm dark:text-slate-200">Congress / UPA</span>
                 </div>
-                <div class="legend-item flex items-center bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-200">
-                    <div class="w-4 h-4 bg-[#DC2626] rounded-full mr-2 shadow-inner"></div><span class="font-medium text-xs md:text-sm">SP / DMK (Regional)</span>
+                <div class="legend-item flex items-center bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600">
+                    <div class="w-4 h-4 bg-[#DC2626] rounded-full mr-2 shadow-inner"></div><span class="font-medium text-xs md:text-sm dark:text-slate-200">SP / DMK (Regional)</span>
                 </div>
-                <div class="legend-item flex items-center bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-200">
-                    <div class="w-4 h-4 bg-[#16A34A] rounded-full mr-2 shadow-inner"></div><span class="font-medium text-xs md:text-sm">AIADMK / Janata</span>
+                <div class="legend-item flex items-center bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600">
+                    <div class="w-4 h-4 bg-[#16A34A] rounded-full mr-2 shadow-inner"></div><span class="font-medium text-xs md:text-sm dark:text-slate-200">AIADMK / Janata</span>
                 </div>
-                <div class="legend-item flex items-center bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-200">
-                    <div class="w-4 h-4 bg-[#1E3A8A] rounded-full mr-2 shadow-inner"></div><span class="font-medium text-xs md:text-sm">BSP</span>
+                <div class="legend-item flex items-center bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600">
+                    <div class="w-4 h-4 bg-[#1E3A8A] rounded-full mr-2 shadow-inner"></div><span class="font-medium text-xs md:text-sm dark:text-slate-200">BSP</span>
                 </div>
-                <div class="legend-item flex items-center bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-200">
-                    <div class="w-4 h-4 bg-[#10B981] rounded-full mr-2 shadow-inner"></div><span class="font-medium text-xs md:text-sm">MVA (MH)</span>
+                <div class="legend-item flex items-center bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600">
+                    <div class="w-4 h-4 bg-[#10B981] rounded-full mr-2 shadow-inner"></div><span class="font-medium text-xs md:text-sm dark:text-slate-200">MVA (MH)</span>
                 </div>
-                <div class="legend-item flex items-center bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-200">
-                    <div class="w-4 h-4 bg-[#9CA3AF] rounded-full mr-2 shadow-inner"></div><span class="font-medium text-xs md:text-sm">President's Rule</span>
+                <div class="legend-item flex items-center bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600">
+                    <div class="w-4 h-4 bg-[#9CA3AF] rounded-full mr-2 shadow-inner"></div><span class="font-medium text-xs md:text-sm dark:text-slate-200">President's Rule</span>
                 </div>
             </div>
 
-            <!-- Visibility Filters (New Checkboxes) -->
-            <div class="flex flex-wrap items-center gap-4 mb-2 p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
-                <span class="text-sm font-semibold text-slate-600 mr-2">Toggle Visibility:</span>
+            <!-- Visibility Filters (Emojis Removed) -->
+            <div class="flex flex-wrap items-center gap-4 mb-2 p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm transition-colors duration-300">
+                <span class="text-sm font-semibold text-slate-600 dark:text-slate-400 mr-2">Toggle Visibility:</span>
                 <label class="inline-flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-                    <input type="checkbox" id="toggle-india" class="w-4 h-4 text-slate-800 rounded border-slate-300 focus:ring-slate-800 cursor-pointer" checked>
-                    <span class="ml-2 text-sm font-medium text-slate-800"> India</span>
+                    <input type="checkbox" id="toggle-india" class="w-4 h-4 text-blue-600 rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-blue-500 cursor-pointer" checked>
+                    <span class="ml-2 text-sm font-medium text-slate-800 dark:text-slate-200">India</span>
                 </label>
                 <label class="inline-flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-                    <input type="checkbox" id="toggle-mh" class="w-4 h-4 text-slate-800 rounded border-slate-300 focus:ring-slate-800 cursor-pointer" checked>
-                    <span class="ml-2 text-sm font-medium text-slate-800"> Maharashtra</span>
+                    <input type="checkbox" id="toggle-mh" class="w-4 h-4 text-blue-600 rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-blue-500 cursor-pointer" checked>
+                    <span class="ml-2 text-sm font-medium text-slate-800 dark:text-slate-200">Maharashtra</span>
                 </label>
                 <label class="inline-flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-                    <input type="checkbox" id="toggle-tn" class="w-4 h-4 text-slate-800 rounded border-slate-300 focus:ring-slate-800 cursor-pointer" checked>
-                    <span class="ml-2 text-sm font-medium text-slate-800"> Tamil Nadu</span>
+                    <input type="checkbox" id="toggle-tn" class="w-4 h-4 text-blue-600 rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-blue-500 cursor-pointer" checked>
+                    <span class="ml-2 text-sm font-medium text-slate-800 dark:text-slate-200">Tamil Nadu</span>
                 </label>
                 <label class="inline-flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-                    <input type="checkbox" id="toggle-up" class="w-4 h-4 text-slate-800 rounded border-slate-300 focus:ring-slate-800 cursor-pointer" checked>
-                    <span class="ml-2 text-sm font-medium text-slate-800"> Uttar Pradesh</span>
+                    <input type="checkbox" id="toggle-up" class="w-4 h-4 text-blue-600 rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-blue-500 cursor-pointer" checked>
+                    <span class="ml-2 text-sm font-medium text-slate-800 dark:text-slate-200">Uttar Pradesh</span>
                 </label>
             </div>
 
             <!-- Chart Controls -->
             <div class="flex flex-col sm:flex-row justify-end items-center mt-4 gap-3">
-                <button id="resetZoom" class="px-5 py-2.5 bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 rounded-lg text-sm font-semibold transition shadow-sm flex-shrink-0 hidden">
+                <button id="resetZoom" class="px-5 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600 rounded-lg text-sm font-semibold transition shadow-sm flex-shrink-0 hidden">
                     Reset Zoom
                 </button>
-                <button id="toggleScale" class="px-5 py-2.5 bg-slate-800 text-white hover:bg-slate-700 rounded-lg text-sm font-semibold transition shadow-md flex-shrink-0">
+                <button id="toggleScale" class="px-5 py-2.5 bg-slate-800 dark:bg-blue-600 text-white hover:bg-slate-700 dark:hover:bg-blue-700 rounded-lg text-sm font-semibold transition shadow-md flex-shrink-0">
                     View Logarithmic Scale
                 </button>
             </div>
         </div>
 
         <!-- Chart Container -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6 w-full">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6 w-full transition-colors duration-300">
             <div class="relative h-[60vh] min-h-[500px] w-full">
                 <canvas id="gdpChart"></canvas>
             </div>
@@ -102,6 +116,22 @@
     </div>
 
     <script>
+        // --- 0. Theme Toggle Logic ---
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
+
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            
+            themeIcon.innerText = isDark ? '☀️' : '🌙';
+            themeText.innerText = isDark ? 'Light Mode' : 'Dark Mode';
+            
+            // Re-apply chart theme colors immediately
+            applyChartTheme();
+        });
+
         // 1. Data Generation (Extrapolated + Official Data)
         const years = [];
         const upGdpData = [];
@@ -133,7 +163,6 @@
 
         // Extrapolate backwards from 2011 to 1947 to ensure perfect continuity for initial load
         for (let year = 2010; year >= 1947; year--) {
-            // Realistic historical national nominal growth rates (Inflation + Real Growth)
             let indGrowth = 1.11; 
             if (year < 2010 && year >= 2000) indGrowth = 1.12;
             if (year < 2000 && year >= 1990) indGrowth = 1.14;
@@ -369,6 +398,7 @@
                                 const year = context.label;
                                 const dsLabel = context.dataset.label;
                                 
+                                // Emojis removed from prefix variables
                                 let partyInfo, prefix, role;
                                 if (dsLabel === 'India Nominal GDP') {
                                     partyInfo = getIndiaPartyInfo(year);
@@ -420,9 +450,9 @@
                         grid: { color: '#e2e8f0', drawBorder: false },
                         ticks: {
                             font: { family: 'Inter' },
+                            color: '#475569',
                             callback: function(value) {
                                 if (value < 0) return '';
-                                // Format to 1 decimal place to prevent long strings from shifting the graph right
                                 let formattedValue = Number.isInteger(value) ? value : Number(value).toFixed(1);
                                 return '₹' + formattedValue + ' LC';
                             }
@@ -441,6 +471,7 @@
                             maxRotation: 45,
                             minRotation: 45,
                             font: { family: 'Inter' },
+                            color: '#475569',
                             callback: function(val, index) {
                                 if (index === 0 || index === years.length - 1 || index % 5 === 0) {
                                     return this.getLabelForValue(val);
@@ -452,6 +483,27 @@
                 }
             }
         });
+
+        // 3.5 Dynamic Chart Theme Applicator
+        function applyChartTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#cbd5e1' : '#475569'; // slate-300 or slate-600
+            const gridColor = isDark ? '#334155' : '#e2e8f0'; // slate-700 or slate-200
+            
+            // Update X Axis
+            gdpChart.options.scales.x.title.color = textColor;
+            gdpChart.options.scales.x.ticks.color = textColor;
+            
+            // Update Y Axis
+            gdpChart.options.scales.y.title.color = textColor;
+            gdpChart.options.scales.y.ticks.color = textColor;
+            gdpChart.options.scales.y.grid.color = gridColor;
+
+            gdpChart.update();
+        }
+
+        // Apply theme immediately if system default is already dark or changed
+        applyChartTheme();
 
         // 4. Custom Filters Logic & Controls
         
@@ -480,10 +532,12 @@
             if (isLogScale) {
                 this.innerText = 'Switch to Linear Scale';
                 this.classList.replace('bg-slate-800', 'bg-blue-600');
+                this.classList.replace('dark:bg-blue-600', 'dark:bg-blue-500'); // dark mode adjustment
                 this.classList.replace('hover:bg-slate-700', 'hover:bg-blue-700');
             } else {
                 this.innerText = 'View Logarithmic Scale (Better for historical data)';
                 this.classList.replace('bg-blue-600', 'bg-slate-800');
+                this.classList.replace('dark:bg-blue-500', 'dark:bg-blue-600'); // dark mode adjustment
                 this.classList.replace('hover:bg-blue-700', 'hover:bg-slate-700');
             }
             gdpChart.update();
@@ -561,5 +615,3 @@
     </script>
 </body>
 </html>
-
-
