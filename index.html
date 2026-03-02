@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uttar Pradesh GDP Timeline (1947 - 2026)</title>
+    <title>India & States GDP Timeline (1947 - 2026)</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -61,8 +61,29 @@
                 </div>
             </div>
 
+            <!-- Visibility Filters (New Checkboxes) -->
+            <div class="flex flex-wrap items-center gap-4 mb-2 p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
+                <span class="text-sm font-semibold text-slate-600 mr-2">Toggle Visibility:</span>
+                <label class="inline-flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+                    <input type="checkbox" id="toggle-india" class="w-4 h-4 text-slate-800 rounded border-slate-300 focus:ring-slate-800 cursor-pointer" checked>
+                    <span class="ml-2 text-sm font-medium text-slate-800">🇮🇳 India</span>
+                </label>
+                <label class="inline-flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+                    <input type="checkbox" id="toggle-mh" class="w-4 h-4 text-slate-800 rounded border-slate-300 focus:ring-slate-800 cursor-pointer" checked>
+                    <span class="ml-2 text-sm font-medium text-slate-800">🐅 Maharashtra</span>
+                </label>
+                <label class="inline-flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+                    <input type="checkbox" id="toggle-tn" class="w-4 h-4 text-slate-800 rounded border-slate-300 focus:ring-slate-800 cursor-pointer" checked>
+                    <span class="ml-2 text-sm font-medium text-slate-800">🌊 Tamil Nadu</span>
+                </label>
+                <label class="inline-flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+                    <input type="checkbox" id="toggle-up" class="w-4 h-4 text-slate-800 rounded border-slate-300 focus:ring-slate-800 cursor-pointer" checked>
+                    <span class="ml-2 text-sm font-medium text-slate-800">📍 Uttar Pradesh</span>
+                </label>
+            </div>
+
             <!-- Chart Controls -->
-            <div class="flex flex-col sm:flex-row justify-end items-center mt-6 gap-3">
+            <div class="flex flex-col sm:flex-row justify-end items-center mt-4 gap-3">
                 <button id="resetZoom" class="px-5 py-2.5 bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 rounded-lg text-sm font-semibold transition shadow-sm flex-shrink-0 hidden">
                     Reset Zoom
                 </button>
@@ -312,7 +333,7 @@
                 ]
             },
             options: {
-                events: ['click'], // Restricts all interactions (like tooltips) to click/tap only
+                events: ['click'], // Restricts interactions to click only
                 responsive: true,
                 maintainAspectRatio: false,
                 interaction: {
@@ -328,12 +349,8 @@
                             onPan: () => document.getElementById('resetZoom').classList.remove('hidden')
                         },
                         zoom: {
-                            wheel: {
-                                enabled: true,
-                            },
-                            pinch: {
-                                enabled: true
-                            },
+                            wheel: { enabled: true },
+                            pinch: { enabled: true },
                             mode: 'y',
                             onZoom: () => document.getElementById('resetZoom').classList.remove('hidden')
                         }
@@ -436,7 +453,25 @@
             }
         });
 
-        // 4. Toggle Logarithmic Scale Logic
+        // 4. Custom Filters Logic & Controls
+        
+        // Visibility Checkboxes functionality
+        const toggles = [
+            { id: 'toggle-india', index: 0 },
+            { id: 'toggle-mh', index: 1 },
+            { id: 'toggle-tn', index: 2 },
+            { id: 'toggle-up', index: 3 }
+        ];
+
+        toggles.forEach(toggle => {
+            document.getElementById(toggle.id).addEventListener('change', function() {
+                // Set the specific dataset's visibility flag
+                gdpChart.setDatasetVisibility(toggle.index, this.checked);
+                gdpChart.update();
+            });
+        });
+
+        // Toggle Logarithmic Scale
         document.getElementById('toggleScale').addEventListener('click', function() {
             isLogScale = !isLogScale;
             gdpChart.options.scales.y.type = isLogScale ? 'logarithmic' : 'linear';
@@ -526,3 +561,5 @@
     </script>
 </body>
 </html>
+
+
