@@ -372,16 +372,16 @@
                                 let partyInfo, prefix, role;
                                 if (dsLabel === 'India Nominal GDP') {
                                     partyInfo = getIndiaPartyInfo(year);
-                                    prefix = '🇮🇳 India'; role = 'PM';
+                                    prefix = 'India'; role = 'PM';
                                 } else if (dsLabel === 'Maharashtra Nominal GDP') {
                                     partyInfo = getMhPartyInfo(year);
-                                    prefix = '🐅 MH'; role = 'CM';
+                                    prefix = 'MH'; role = 'CM';
                                 } else if (dsLabel === 'Tamil Nadu Nominal GDP') {
                                     partyInfo = getTnPartyInfo(year);
-                                    prefix = '🌊 TN'; role = 'CM';
+                                    prefix = 'TN'; role = 'CM';
                                 } else {
                                     partyInfo = getPartyInfo(year);
-                                    prefix = '📍 UP'; role = 'CM';
+                                    prefix = 'UP'; role = 'CM';
                                 }
                                 
                                 return [
