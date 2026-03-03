@@ -76,6 +76,9 @@
                 <div class="legend-item flex items-center bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600">
                     <div class="w-4 h-4 bg-[#9CA3AF] rounded-full mr-2 shadow-inner"></div><span class="font-medium text-xs md:text-sm dark:text-slate-200">President's Rule</span>
                 </div>
+                <div class="legend-item flex items-center bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 border-dashed">
+                    <div class="w-4 h-0 border-t-2 border-slate-500 border-dashed mr-2"></div><span class="font-medium text-xs md:text-sm dark:text-slate-200">Historical Avg Trendline (CAGR)</span>
+                </div>
             </div>
 
             <!-- Visibility Filters (Only UP checked by default) -->
@@ -134,74 +137,87 @@
             themeIcon.innerHTML = isDark ? sunIcon : moonIcon;
             
             // Re-apply chart theme colors immediately
-            applyChartTheme();
+            if(window.gdpChartInstance) {
+                applyChartTheme(window.gdpChartInstance);
+            }
         });
 
-        // 1. Data Generation (Extrapolated + Official Data)
-        const years = [];
-        const upGdpData = [];
-        const mhGdpData = [];
-        const tnGdpData = [];
-        const indiaGdpData = [];
-        
-        // Hardcode known official data (2011 onwards in Lakh Crores ₹)
-        const upMap = {
-            2011: 7.24, 2012: 8.22, 2013: 9.44, 2014: 10.11, 2015: 11.53, 
-            2016: 13.30, 2017: 14.39, 2018: 15.82, 2019: 17.00, 2020: 16.41, 
-            2021: 19.16, 2022: 20.50, 2023: 22.58, 2024: 25.48, 2025: 30.25, 2026: 36.00
-        };
-        const mhMap = {
-            2011: 12.80, 2012: 14.48, 2013: 16.50, 2014: 17.92, 2015: 19.66, 
-            2016: 21.88, 2017: 24.11, 2018: 26.60, 2019: 28.18, 2020: 27.12, 
-            2021: 31.08, 2022: 35.27, 2023: 38.79, 2024: 42.67, 2025: 47.00, 2026: 51.00
-        };
-        const tnMap = {
-            2011: 7.51, 2012: 8.55, 2013: 9.71, 2014: 10.93, 2015: 12.13, 
-            2016: 13.38, 2017: 14.65, 2018: 16.30, 2019: 17.97, 2020: 18.45, 
-            2021: 21.24, 2022: 23.65, 2023: 26.00, 2024: 28.30, 2025: 31.50, 2026: 35.00
-        };
-        const indiaMap = {
-            2011: 87.36, 2012: 99.44, 2013: 105.36, 2014: 112.33, 2015: 125.41, 
-            2016: 139.52, 2017: 153.62, 2018: 170.90, 2019: 200.74, 2020: 198.00, 
-            2021: 236.64, 2022: 273.07, 2023: 295.36, 2024: 327.71, 2025: 360.00, 2026: 390.00
+        // 1. Core Data State
+        const dataState = {
+            years: [],
+            upGdp: [], mhGdp: [], tnGdp: [], indiaGdp: [],
+            upTrend: [], mhTrend: [], tnTrend: [], indiaTrend: []
         };
 
-        // Extrapolate backwards from 2011 to 1947 to ensure perfect continuity for initial load
-        for (let year = 2010; year >= 1947; year--) {
-            let indGrowth = 1.11; 
-            if (year < 2010 && year >= 2000) indGrowth = 1.12;
-            if (year < 2000 && year >= 1990) indGrowth = 1.14;
-            if (year < 1990 && year >= 1980) indGrowth = 1.13;
-            if (year < 1980 && year >= 1970) indGrowth = 1.09;
-            if (year < 1970 && year >= 1960) indGrowth = 1.08;
-            if (year < 1960) indGrowth = 1.06;
-            
-            if (year === 1990) indGrowth = 1.02; // 1991 Crisis
-            if (year === 2007) indGrowth = 1.05; // 2008 Recession
-            
-            indiaMap[year] = indiaMap[year + 1] / indGrowth;
+        // Initialize and calculate all static baseline data
+        function initializeData() {
+            const upMap = {
+                2011: 7.24, 2012: 8.22, 2013: 9.44, 2014: 10.11, 2015: 11.53, 
+                2016: 13.30, 2017: 14.39, 2018: 15.82, 2019: 17.00, 2020: 16.41, 
+                2021: 19.16, 2022: 20.50, 2023: 22.58, 2024: 25.48, 2025: 30.25, 2026: 36.00
+            };
+            const mhMap = {
+                2011: 12.80, 2012: 14.48, 2013: 16.50, 2014: 17.92, 2015: 19.66, 
+                2016: 21.88, 2017: 24.11, 2018: 26.60, 2019: 28.18, 2020: 27.12, 
+                2021: 31.08, 2022: 35.27, 2023: 38.79, 2024: 42.67, 2025: 47.00, 2026: 51.00
+            };
+            const tnMap = {
+                2011: 7.51, 2012: 8.55, 2013: 9.71, 2014: 10.93, 2015: 12.13, 
+                2016: 13.38, 2017: 14.65, 2018: 16.30, 2019: 17.97, 2020: 18.45, 
+                2021: 21.24, 2022: 23.65, 2023: 26.00, 2024: 28.30, 2025: 31.50, 2026: 35.00
+            };
+            const indiaMap = {
+                2011: 87.36, 2012: 99.44, 2013: 105.36, 2014: 112.33, 2015: 125.41, 
+                2016: 139.52, 2017: 153.62, 2018: 170.90, 2019: 200.74, 2020: 198.00, 
+                2021: 236.64, 2022: 273.07, 2023: 295.36, 2024: 327.71, 2025: 360.00, 2026: 390.00
+            };
 
-            // Highly accurate State Historical Share Models
-            let historicalUpShare = 0.08287 + ((2011 - year) * 0.000345);
-            upMap[year] = indiaMap[year] * historicalUpShare;
+            for (let year = 2010; year >= 1947; year--) {
+                let indGrowth = 1.11; 
+                if (year < 2010 && year >= 2000) indGrowth = 1.12;
+                if (year < 2000 && year >= 1990) indGrowth = 1.14;
+                if (year < 1990 && year >= 1980) indGrowth = 1.13;
+                if (year < 1980 && year >= 1970) indGrowth = 1.09;
+                if (year < 1970 && year >= 1960) indGrowth = 1.08;
+                if (year < 1960) indGrowth = 1.06;
+                
+                if (year === 1990) indGrowth = 1.02; 
+                if (year === 2007) indGrowth = 1.05; 
+                
+                indiaMap[year] = indiaMap[year + 1] / indGrowth;
 
-            let historicalMhShare = 0.1465 - ((2011 - year) * 0.0001);
-            mhMap[year] = indiaMap[year] * historicalMhShare;
+                upMap[year] = indiaMap[year] * (0.08287 + ((2011 - year) * 0.000345));
+                mhMap[year] = indiaMap[year] * (0.1465 - ((2011 - year) * 0.0001));
+                tnMap[year] = indiaMap[year] * (0.0860 - ((2011 - year) * 0.0002));
+            }
 
-            let historicalTnShare = 0.0860 - ((2011 - year) * 0.0002);
-            tnMap[year] = indiaMap[year] * historicalTnShare;
+            for (let year = 1947; year <= 2026; year++) {
+                dataState.years.push(String(year));
+                dataState.upGdp.push(parseFloat(upMap[year].toFixed(4))); 
+                dataState.mhGdp.push(parseFloat(mhMap[year].toFixed(4))); 
+                dataState.tnGdp.push(parseFloat(tnMap[year].toFixed(4))); 
+                dataState.indiaGdp.push(parseFloat(indiaMap[year].toFixed(3)));
+            }
         }
 
-        // Assemble final arrays
-        for (let year = 1947; year <= 2026; year++) {
-            years.push(String(year));
-            upGdpData.push(parseFloat(upMap[year].toFixed(4))); 
-            mhGdpData.push(parseFloat(mhMap[year].toFixed(4))); 
-            tnGdpData.push(parseFloat(tnMap[year].toFixed(4))); 
-            indiaGdpData.push(parseFloat(indiaMap[year].toFixed(3)));
+        // Calculate Compound Annual Growth Rate (CAGR) Trendlines
+        function calculateCagrTrendlines() {
+            const numYears = dataState.years.length - 1;
+            
+            const makeTrend = (dataArray) => {
+                const start = dataArray[0];
+                const end = dataArray[dataArray.length - 1];
+                const cagr = Math.pow(end / start, 1 / numYears) - 1;
+                return dataArray.map((_, i) => parseFloat((start * Math.pow(1 + cagr, i)).toFixed(4)));
+            };
+
+            dataState.indiaTrend.length = 0; dataState.indiaTrend.push(...makeTrend(dataState.indiaGdp));
+            dataState.mhTrend.length = 0; dataState.mhTrend.push(...makeTrend(dataState.mhGdp));
+            dataState.tnTrend.length = 0; dataState.tnTrend.push(...makeTrend(dataState.tnGdp));
+            dataState.upTrend.length = 0; dataState.upTrend.push(...makeTrend(dataState.upGdp));
         }
 
-        // 2. Political Timeline Logic
+        // 2. Political History Helpers
         function getPartyInfo(year) {
             const y = parseInt(year);
             if (y >= 2017) return { name: 'BJP', color: '#F97316', cm: 'Yogi Adityanath' };
@@ -279,286 +295,353 @@
             return { name: 'Congress', color: '#2563EB', pm: 'Jawaharlal Nehru' };
         }
 
-        // 3. Chart Integration
-        const ctx = document.getElementById('gdpChart').getContext('2d');
-        let isLogScale = false;
+        // 3. Theme Configuration logic
+        function applyChartTheme(chartInstance) {
+            if(!chartInstance) return;
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#cbd5e1' : '#475569'; 
+            const gridColor = isDark ? '#334155' : '#e2e8f0'; 
+            
+            chartInstance.options.scales.x.title.color = textColor;
+            chartInstance.options.scales.x.ticks.color = textColor;
+            
+            chartInstance.options.scales.y.title.color = textColor;
+            chartInstance.options.scales.y.ticks.color = textColor;
+            chartInstance.options.scales.y.grid.color = gridColor;
 
-        const gdpChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: years,
-                datasets: [
-                    {
-                        label: 'India Nominal GDP',
-                        data: indiaGdpData,
-                        hidden: true, // Hidden by default
-                        borderWidth: 4,
-                        pointRadius: 0,
-                        pointHoverRadius: 8,
-                        pointHoverBorderWidth: 3,
-                        fill: false,
-                        tension: 0.3,
-                        clip: false,
-                        segment: {
-                            borderColor: ctx => {
-                                if (ctx.p0DataIndex === undefined) return '#000';
-                                return getIndiaPartyInfo(years[ctx.p0DataIndex]).color;
-                            }
+            chartInstance.update();
+        }
+
+        // 4. Main Initialization
+        function initApp() {
+            // First, prep the arrays
+            initializeData();
+            calculateCagrTrendlines();
+
+            const ctx = document.getElementById('gdpChart').getContext('2d');
+            let isLogScale = false;
+
+            // Build Chart
+            window.gdpChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dataState.years,
+                    datasets: [
+                        {
+                            label: 'India Nominal GDP',
+                            data: dataState.indiaGdp,
+                            hidden: true,
+                            borderWidth: 4,
+                            pointRadius: 0,
+                            pointHoverRadius: 8,
+                            pointHoverBorderWidth: 3,
+                            fill: false,
+                            tension: 0.3,
+                            clip: false,
+                            segment: {
+                                borderColor: ctx => {
+                                    if (ctx.p0DataIndex === undefined) return '#000';
+                                    return getIndiaPartyInfo(dataState.years[ctx.p0DataIndex]).color;
+                                }
+                            },
+                            pointBackgroundColor: ctx => getIndiaPartyInfo(dataState.years[ctx.dataIndex]).color,
+                            pointBorderColor: '#ffffff'
                         },
-                        pointBackgroundColor: ctx => getIndiaPartyInfo(years[ctx.dataIndex]).color,
-                        pointBorderColor: '#ffffff'
-                    },
-                    {
-                        label: 'Maharashtra Nominal GDP',
-                        data: mhGdpData,
-                        hidden: true, // Hidden by default
-                        borderWidth: 4,
-                        pointRadius: 0,
-                        pointHoverRadius: 8,
-                        pointHoverBorderWidth: 3,
-                        fill: false,
-                        tension: 0.3,
-                        clip: false,
-                        segment: {
-                            borderColor: ctx => {
-                                if (ctx.p0DataIndex === undefined) return '#000';
-                                return getMhPartyInfo(years[ctx.p0DataIndex]).color;
-                            }
+                        {
+                            label: 'Maharashtra Nominal GDP',
+                            data: dataState.mhGdp,
+                            hidden: true,
+                            borderWidth: 4,
+                            pointRadius: 0,
+                            pointHoverRadius: 8,
+                            pointHoverBorderWidth: 3,
+                            fill: false,
+                            tension: 0.3,
+                            clip: false,
+                            segment: {
+                                borderColor: ctx => {
+                                    if (ctx.p0DataIndex === undefined) return '#000';
+                                    return getMhPartyInfo(dataState.years[ctx.p0DataIndex]).color;
+                                }
+                            },
+                            pointBackgroundColor: ctx => getMhPartyInfo(dataState.years[ctx.dataIndex]).color,
+                            pointBorderColor: '#ffffff'
                         },
-                        pointBackgroundColor: ctx => getMhPartyInfo(years[ctx.dataIndex]).color,
-                        pointBorderColor: '#ffffff'
-                    },
-                    {
-                        label: 'Tamil Nadu Nominal GDP',
-                        data: tnGdpData,
-                        hidden: true, // Hidden by default
-                        borderWidth: 4,
-                        pointRadius: 0,
-                        pointHoverRadius: 8,
-                        pointHoverBorderWidth: 3,
-                        fill: false,
-                        tension: 0.3,
-                        clip: false,
-                        segment: {
-                            borderColor: ctx => {
-                                if (ctx.p0DataIndex === undefined) return '#000';
-                                return getTnPartyInfo(years[ctx.p0DataIndex]).color;
-                            }
+                        {
+                            label: 'Tamil Nadu Nominal GDP',
+                            data: dataState.tnGdp,
+                            hidden: true,
+                            borderWidth: 4,
+                            pointRadius: 0,
+                            pointHoverRadius: 8,
+                            pointHoverBorderWidth: 3,
+                            fill: false,
+                            tension: 0.3,
+                            clip: false,
+                            segment: {
+                                borderColor: ctx => {
+                                    if (ctx.p0DataIndex === undefined) return '#000';
+                                    return getTnPartyInfo(dataState.years[ctx.p0DataIndex]).color;
+                                }
+                            },
+                            pointBackgroundColor: ctx => getTnPartyInfo(dataState.years[ctx.dataIndex]).color,
+                            pointBorderColor: '#ffffff'
                         },
-                        pointBackgroundColor: ctx => getTnPartyInfo(years[ctx.dataIndex]).color,
-                        pointBorderColor: '#ffffff'
-                    },
-                    {
-                        label: 'UP Nominal GDP',
-                        data: upGdpData,
-                        borderWidth: 4,
-                        pointRadius: 0,
-                        pointHoverRadius: 8,
-                        pointHoverBorderWidth: 3,
-                        fill: false,
-                        tension: 0.3,
-                        clip: false,
-                        segment: {
-                            borderColor: ctx => {
-                                if (ctx.p0DataIndex === undefined) return '#000';
-                                return getPartyInfo(years[ctx.p0DataIndex]).color;
-                            }
+                        {
+                            label: 'UP Nominal GDP',
+                            data: dataState.upGdp,
+                            borderWidth: 4,
+                            pointRadius: 0,
+                            pointHoverRadius: 8,
+                            pointHoverBorderWidth: 3,
+                            fill: false,
+                            tension: 0.3,
+                            clip: false,
+                            segment: {
+                                borderColor: ctx => {
+                                    if (ctx.p0DataIndex === undefined) return '#000';
+                                    return getPartyInfo(dataState.years[ctx.p0DataIndex]).color;
+                                }
+                            },
+                            pointBackgroundColor: ctx => getPartyInfo(dataState.years[ctx.dataIndex]).color,
+                            pointBorderColor: '#ffffff'
                         },
-                        pointBackgroundColor: ctx => getPartyInfo(years[ctx.dataIndex]).color,
-                        pointBorderColor: '#ffffff'
-                    }
-                ]
-            },
-            options: {
-                events: ['click'], // Restricts interactions to click only
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false,
+                        // Trendline Datasets
+                        {
+                            label: 'India Trendline',
+                            data: dataState.indiaTrend,
+                            hidden: true,
+                            borderWidth: 2,
+                            borderDash: [6, 6],
+                            pointRadius: 0,
+                            pointHoverRadius: 0,
+                            fill: false,
+                            borderColor: 'rgba(59, 130, 246, 0.6)', 
+                            tension: 0
+                        },
+                        {
+                            label: 'MH Trendline',
+                            data: dataState.mhTrend,
+                            hidden: true,
+                            borderWidth: 2,
+                            borderDash: [6, 6],
+                            pointRadius: 0,
+                            pointHoverRadius: 0,
+                            fill: false,
+                            borderColor: 'rgba(16, 185, 129, 0.6)', 
+                            tension: 0
+                        },
+                        {
+                            label: 'TN Trendline',
+                            data: dataState.tnTrend,
+                            hidden: true,
+                            borderWidth: 2,
+                            borderDash: [6, 6],
+                            pointRadius: 0,
+                            pointHoverRadius: 0,
+                            fill: false,
+                            borderColor: 'rgba(239, 68, 68, 0.6)', 
+                            tension: 0
+                        },
+                        {
+                            label: 'UP Trendline',
+                            data: dataState.upTrend,
+                            hidden: false,
+                            borderWidth: 2,
+                            borderDash: [6, 6],
+                            pointRadius: 0,
+                            pointHoverRadius: 0,
+                            fill: false,
+                            borderColor: 'rgba(249, 115, 22, 0.6)', 
+                            tension: 0
+                        }
+                    ]
                 },
-                plugins: {
-                    legend: { display: false },
-                    zoom: {
-                        pan: {
-                            enabled: true,
-                            mode: 'y',
-                            onPan: () => document.getElementById('resetZoom').classList.remove('hidden')
-                        },
+                options: {
+                    events: ['click'], 
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: { display: false },
                         zoom: {
-                            wheel: { enabled: true },
-                            pinch: { enabled: true },
-                            mode: 'y',
-                            onZoom: () => document.getElementById('resetZoom').classList.remove('hidden')
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        titleFont: { size: 14, family: 'Inter' },
-                        bodyFont: { size: 14, family: 'Inter' },
-                        padding: 12,
-                        cornerRadius: 8,
-                        callbacks: {
-                            title: function(context) {
-                                return `Year: ${context[0].label}`;
+                            pan: {
+                                enabled: true,
+                                mode: 'xy', // Changed from 'y' to 'xy' to enable horizontal panning
+                                onPan: () => document.getElementById('resetZoom').classList.remove('hidden')
                             },
-                            label: function(context) {
-                                const year = context.label;
-                                const dsLabel = context.dataset.label;
-                                
-                                let partyInfo, prefix, role;
-                                if (dsLabel === 'India Nominal GDP') {
-                                    partyInfo = getIndiaPartyInfo(year);
-                                    prefix = 'India'; role = 'PM';
-                                } else if (dsLabel === 'Maharashtra Nominal GDP') {
-                                    partyInfo = getMhPartyInfo(year);
-                                    prefix = 'MH'; role = 'CM';
-                                } else if (dsLabel === 'Tamil Nadu Nominal GDP') {
-                                    partyInfo = getTnPartyInfo(year);
-                                    prefix = 'TN'; role = 'CM';
-                                } else {
-                                    partyInfo = getPartyInfo(year);
-                                    prefix = 'UP'; role = 'CM';
-                                }
-                                
-                                return [
-                                    `${prefix} GDP: ₹${context.raw} Lakh Cr`,
-                                    `Party: ${partyInfo.name}`,
-                                    `${role}: ${partyInfo.pm || partyInfo.cm}`
-                                ];
-                            },
-                            labelColor: function(context) {
-                                const dsLabel = context.dataset.label;
-                                let partyInfo;
-                                if (dsLabel === 'India Nominal GDP') partyInfo = getIndiaPartyInfo(context.label);
-                                else if (dsLabel === 'Maharashtra Nominal GDP') partyInfo = getMhPartyInfo(context.label);
-                                else if (dsLabel === 'Tamil Nadu Nominal GDP') partyInfo = getTnPartyInfo(context.label);
-                                else partyInfo = getPartyInfo(context.label);
-                                
-                                return {
-                                    borderColor: '#ffffff',
-                                    backgroundColor: partyInfo.color,
-                                    borderWidth: 1,
-                                };
+                            zoom: {
+                                wheel: { enabled: true },
+                                pinch: { enabled: true },
+                                mode: 'xy', // Changed from 'y' to 'xy' to enable horizontal zooming
+                                onZoom: () => document.getElementById('resetZoom').classList.remove('hidden')
                             }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        type: 'linear',
-                        min: -2,
-                        title: {
-                            display: true,
-                            text: 'Gross Domestic Product (in Lakh Crores ₹)',
-                            font: { family: 'Inter', weight: '600', size: 13 },
-                            color: '#475569'
                         },
-                        grid: { color: '#e2e8f0', drawBorder: false },
-                        ticks: {
-                            font: { family: 'Inter' },
-                            color: '#475569',
-                            callback: function(value) {
-                                if (value < 0) return '';
-                                let formattedValue = Number.isInteger(value) ? value : Number(value).toFixed(1);
-                                return '₹' + formattedValue + ' LC';
+                        tooltip: {
+                            filter: function(tooltipItem) {
+                                return !tooltipItem.dataset.label.includes('Trendline');
+                            },
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleFont: { size: 14, family: 'Inter' },
+                            bodyFont: { size: 14, family: 'Inter' },
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                title: function(context) {
+                                    return `Year: ${context[0].label}`;
+                                },
+                                label: function(context) {
+                                    const year = context.label;
+                                    const dsLabel = context.dataset.label;
+                                    
+                                    let partyInfo, prefix, role;
+                                    if (dsLabel === 'India Nominal GDP') {
+                                        partyInfo = getIndiaPartyInfo(year);
+                                        prefix = 'India'; role = 'PM';
+                                    } else if (dsLabel === 'Maharashtra Nominal GDP') {
+                                        partyInfo = getMhPartyInfo(year);
+                                        prefix = 'MH'; role = 'CM';
+                                    } else if (dsLabel === 'Tamil Nadu Nominal GDP') {
+                                        partyInfo = getTnPartyInfo(year);
+                                        prefix = 'TN'; role = 'CM';
+                                    } else {
+                                        partyInfo = getPartyInfo(year);
+                                        prefix = 'UP'; role = 'CM';
+                                    }
+                                    
+                                    return [
+                                        `${prefix} GDP: ₹${context.raw} Lakh Cr`,
+                                        `Party: ${partyInfo.name}`,
+                                        `${role}: ${partyInfo.pm || partyInfo.cm}`
+                                    ];
+                                },
+                                labelColor: function(context) {
+                                    const dsLabel = context.dataset.label;
+                                    let partyInfo;
+                                    if (dsLabel === 'India Nominal GDP') partyInfo = getIndiaPartyInfo(context.label);
+                                    else if (dsLabel === 'Maharashtra Nominal GDP') partyInfo = getMhPartyInfo(context.label);
+                                    else if (dsLabel === 'Tamil Nadu Nominal GDP') partyInfo = getTnPartyInfo(context.label);
+                                    else partyInfo = getPartyInfo(context.label);
+                                    
+                                    return {
+                                        borderColor: '#ffffff',
+                                        backgroundColor: partyInfo.color,
+                                        borderWidth: 1,
+                                    };
+                                }
                             }
                         }
                     },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Year',
-                            font: { family: 'Inter', weight: '600', size: 13 },
-                            color: '#475569'
-                        },
-                        grid: { display: false, drawBorder: false },
-                        ticks: {
-                            autoSkip: false,
-                            maxRotation: 90, // Makes the years perfectly perpendicular (vertical)
-                            minRotation: 90, // Makes the years perfectly perpendicular (vertical)
-                            font: { family: 'Inter' },
-                            color: '#475569',
-                            callback: function(val, index) {
-                                if (index === 0 || index === years.length - 1 || index % 5 === 0) {
-                                    return this.getLabelForValue(val);
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            min: -2,
+                            title: {
+                                display: true,
+                                text: 'Gross Domestic Product (in Lakh Crores ₹)',
+                                font: { family: 'Inter', weight: '600', size: 13 },
+                                color: '#475569'
+                            },
+                            grid: { color: '#e2e8f0', drawBorder: false },
+                            ticks: {
+                                font: { family: 'Inter' },
+                                color: '#475569',
+                                callback: function(value) {
+                                    if (value < 0) return '';
+                                    let formattedValue = Number.isInteger(value) ? value : Number(value).toFixed(1);
+                                    return '₹' + formattedValue + ' LC';
                                 }
-                                return null;
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Year',
+                                font: { family: 'Inter', weight: '600', size: 13 },
+                                color: '#475569'
+                            },
+                            grid: { display: false, drawBorder: false },
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 90,
+                                minRotation: 90,
+                                font: { family: 'Inter' },
+                                color: '#475569',
+                                callback: function(val, index) {
+                                    if (index === 0 || index === dataState.years.length - 1 || index % 5 === 0) {
+                                        return this.getLabelForValue(val);
+                                    }
+                                    return null;
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
+            });
 
-        // 3.5 Dynamic Chart Theme Applicator
-        function applyChartTheme() {
-            const isDark = document.documentElement.classList.contains('dark');
-            const textColor = isDark ? '#cbd5e1' : '#475569'; // slate-300 or slate-600
-            const gridColor = isDark ? '#334155' : '#e2e8f0'; // slate-700 or slate-200
-            
-            // Update X Axis
-            gdpChart.options.scales.x.title.color = textColor;
-            gdpChart.options.scales.x.ticks.color = textColor;
-            
-            // Update Y Axis
-            gdpChart.options.scales.y.title.color = textColor;
-            gdpChart.options.scales.y.ticks.color = textColor;
-            gdpChart.options.scales.y.grid.color = gridColor;
+            // Set initial theme colors
+            applyChartTheme(window.gdpChartInstance);
 
-            gdpChart.update();
+            // Connect Filters
+            const toggles = [
+                { id: 'toggle-india', index: 0, trendIndex: 4 },
+                { id: 'toggle-mh', index: 1, trendIndex: 5 },
+                { id: 'toggle-tn', index: 2, trendIndex: 6 },
+                { id: 'toggle-up', index: 3, trendIndex: 7 }
+            ];
+
+            toggles.forEach(toggle => {
+                document.getElementById(toggle.id).addEventListener('change', function() {
+                    window.gdpChartInstance.setDatasetVisibility(toggle.index, this.checked);
+                    window.gdpChartInstance.setDatasetVisibility(toggle.trendIndex, this.checked);
+                    window.gdpChartInstance.update();
+                });
+            });
+
+            // Connect Scale Toggle
+            document.getElementById('toggleScale').addEventListener('click', function() {
+                isLogScale = !isLogScale;
+                window.gdpChartInstance.options.scales.y.type = isLogScale ? 'logarithmic' : 'linear';
+                window.gdpChartInstance.options.scales.y.min = isLogScale ? 0.01 : -2;
+                
+                if (isLogScale) {
+                    this.innerText = 'Switch to Linear Scale';
+                    this.classList.replace('bg-slate-800', 'bg-blue-600');
+                    this.classList.replace('dark:bg-blue-600', 'dark:bg-blue-500'); 
+                    this.classList.replace('hover:bg-slate-700', 'hover:bg-blue-700');
+                } else {
+                    this.innerText = 'View Logarithmic Scale';
+                    this.classList.replace('bg-blue-600', 'bg-slate-800');
+                    this.classList.replace('dark:bg-blue-500', 'dark:bg-blue-600'); 
+                    this.classList.replace('hover:bg-blue-700', 'hover:bg-slate-700');
+                }
+                window.gdpChartInstance.update();
+            });
+
+            // Connect Reset Zoom
+            document.getElementById('resetZoom').addEventListener('click', function() {
+                window.gdpChartInstance.resetZoom();
+                this.classList.add('hidden');
+            });
+
+            // Connect outside click to dismiss tooltips
+            document.addEventListener('click', function(event) {
+                const canvas = document.getElementById('gdpChart');
+                if (event.target !== canvas) {
+                    window.gdpChartInstance.setActiveElements([]);
+                    window.gdpChartInstance.tooltip.setActiveElements([], {x: 0, y: 0});
+                    window.gdpChartInstance.update();
+                }
+            });
+
+            // Trigger async data fetch at the very end
+            fetchLiveIndiaData();
         }
 
-        // Apply theme immediately if system default is already dark or changed
-        applyChartTheme();
-
-        // 4. Custom Filters Logic & Controls
-        
-        // Visibility Checkboxes functionality
-        const toggles = [
-            { id: 'toggle-india', index: 0 },
-            { id: 'toggle-mh', index: 1 },
-            { id: 'toggle-tn', index: 2 },
-            { id: 'toggle-up', index: 3 }
-        ];
-
-        toggles.forEach(toggle => {
-            document.getElementById(toggle.id).addEventListener('change', function() {
-                // Set the specific dataset's visibility flag
-                gdpChart.setDatasetVisibility(toggle.index, this.checked);
-                gdpChart.update();
-            });
-        });
-
-        // Toggle Logarithmic Scale
-        document.getElementById('toggleScale').addEventListener('click', function() {
-            isLogScale = !isLogScale;
-            gdpChart.options.scales.y.type = isLogScale ? 'logarithmic' : 'linear';
-            gdpChart.options.scales.y.min = isLogScale ? 0.01 : -2;
-            
-            if (isLogScale) {
-                this.innerText = 'Switch to Linear Scale';
-                this.classList.replace('bg-slate-800', 'bg-blue-600');
-                this.classList.replace('dark:bg-blue-600', 'dark:bg-blue-500'); // dark mode adjustment
-                this.classList.replace('hover:bg-slate-700', 'hover:bg-blue-700');
-            } else {
-                this.innerText = 'View Logarithmic Scale';
-                this.classList.replace('bg-blue-600', 'bg-slate-800');
-                this.classList.replace('dark:bg-blue-500', 'dark:bg-blue-600'); // dark mode adjustment
-                this.classList.replace('hover:bg-blue-700', 'hover:bg-slate-700');
-            }
-            gdpChart.update();
-        });
-        
-        document.getElementById('toggleScale').innerText = 'View Logarithmic Scale';
-
-        // Handle Reset Zoom button click
-        document.getElementById('resetZoom').addEventListener('click', function() {
-            gdpChart.resetZoom();
-            this.classList.add('hidden');
-        });
-
-        // 5. Live Data Fetch (Hybrid Approach for India GDP)
+        // 5. Async API Fetch Layer
         async function fetchLiveIndiaData() {
             try {
                 const response = await fetch('https://api.worldbank.org/v2/country/IN/indicator/NY.GDP.MKTP.CN?format=json&per_page=100');
@@ -576,28 +659,29 @@
 
                     let dataUpdated = false;
 
-                    years.forEach((yearStr, index) => {
+                    dataState.years.forEach((yearStr, index) => {
                         const year = parseInt(yearStr);
                         if (liveIndiaMap[year]) {
-                            indiaGdpData[index] = parseFloat(liveIndiaMap[year].toFixed(3));
+                            dataState.indiaGdp[index] = parseFloat(liveIndiaMap[year].toFixed(3));
                             
-                            // Recalculate ALL states' pre-2011 GDP based on verified live India data
+                            // Propagate changes downwards accurately
                             if (year < 2011) {
                                 let upShare = 0.08287 + ((2011 - year) * 0.000345);
-                                upGdpData[index] = parseFloat((liveIndiaMap[year] * upShare).toFixed(4));
+                                dataState.upGdp[index] = parseFloat((liveIndiaMap[year] * upShare).toFixed(4));
                                 
                                 let mhShare = 0.1465 - ((2011 - year) * 0.0001);
-                                mhGdpData[index] = parseFloat((liveIndiaMap[year] * mhShare).toFixed(4));
+                                dataState.mhGdp[index] = parseFloat((liveIndiaMap[year] * mhShare).toFixed(4));
 
                                 let tnShare = 0.0860 - ((2011 - year) * 0.0002);
-                                tnGdpData[index] = parseFloat((liveIndiaMap[year] * tnShare).toFixed(4));
+                                dataState.tnGdp[index] = parseFloat((liveIndiaMap[year] * tnShare).toFixed(4));
                             }
                             dataUpdated = true;
                         }
                     });
 
                     if (dataUpdated) {
-                        gdpChart.update();
+                        calculateCagrTrendlines();
+                        if(window.gdpChartInstance) window.gdpChartInstance.update();
                         console.log("Successfully synced India & States Historical GDP with live World Bank data.");
                     }
                 }
@@ -606,21 +690,9 @@
             }
         }
 
-        fetchLiveIndiaData();
-
-        // 6. Dismiss Tooltip on Outside Click
-        document.addEventListener('click', function(event) {
-            const canvas = document.getElementById('gdpChart');
-            // If the click is outside the canvas, hide the active tooltip
-            if (event.target !== canvas) {
-                gdpChart.setActiveElements([]);
-                gdpChart.tooltip.setActiveElements([], {x: 0, y: 0});
-                gdpChart.update();
-            }
-        });
+        // Kickoff
+        initApp();
 
     </script>
 </body>
 </html>
-
-
