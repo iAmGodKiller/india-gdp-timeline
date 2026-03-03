@@ -37,12 +37,15 @@
     <div class="max-w-7xl mx-auto">
         <!-- Header Section -->
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8 mb-6 transition-colors duration-300">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-3">
-                <h1 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white transition-colors duration-300">India & Key States GDP Growth</h1>
+            <div class="flex justify-between items-start mb-3">
+                <h1 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white transition-colors duration-300 pr-4">India & Key States GDP Growth</h1>
                 
-                <!-- Dark Mode Toggle -->
-                <button id="themeToggle" class="mt-4 md:mt-0 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-semibold transition hover:bg-slate-300 dark:hover:bg-slate-600 flex items-center gap-2 shadow-sm">
-                    <span id="themeIcon">🌙</span> <span id="themeText">Dark Mode</span>
+                <!-- Dark Mode Toggle (Icon Only) -->
+                <button id="themeToggle" aria-label="Toggle Dark Mode" class="p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 rounded-full transition-colors duration-200 focus:outline-none flex-shrink-0 mt-1 md:mt-0">
+                    <span id="themeIcon">
+                        <!-- Default Moon Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                    </span>
                 </button>
             </div>
             
@@ -119,14 +122,16 @@
         // --- 0. Theme Toggle Logic ---
         const themeToggle = document.getElementById('themeToggle');
         const themeIcon = document.getElementById('themeIcon');
-        const themeText = document.getElementById('themeText');
+        
+        // SVG Icons
+        const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`;
+        const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
 
         themeToggle.addEventListener('click', () => {
             document.documentElement.classList.toggle('dark');
             const isDark = document.documentElement.classList.contains('dark');
             
-            themeIcon.innerText = isDark ? '☀️' : '🌙';
-            themeText.innerText = isDark ? 'Light Mode' : 'Dark Mode';
+            themeIcon.innerHTML = isDark ? sunIcon : moonIcon;
             
             // Re-apply chart theme colors immediately
             applyChartTheme();
@@ -537,7 +542,7 @@
                 this.classList.replace('dark:bg-blue-600', 'dark:bg-blue-500'); // dark mode adjustment
                 this.classList.replace('hover:bg-slate-700', 'hover:bg-blue-700');
             } else {
-                this.innerText = 'View Logarithmic Scale (Better for historical data)';
+                this.innerText = 'View Logarithmic Scale';
                 this.classList.replace('bg-blue-600', 'bg-slate-800');
                 this.classList.replace('dark:bg-blue-500', 'dark:bg-blue-600'); // dark mode adjustment
                 this.classList.replace('hover:bg-blue-700', 'hover:bg-slate-700');
@@ -545,7 +550,7 @@
             gdpChart.update();
         });
         
-        document.getElementById('toggleScale').innerText = 'View Logarithmic Scale (Better for historical data)';
+        document.getElementById('toggleScale').innerText = 'View Logarithmic Scale';
 
         // Handle Reset Zoom button click
         document.getElementById('resetZoom').addEventListener('click', function() {
