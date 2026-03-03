@@ -75,19 +75,19 @@
                 </div>
             </div>
 
-            <!-- Visibility Filters (Emojis Removed) -->
+            <!-- Visibility Filters (Only UP checked by default) -->
             <div class="flex flex-wrap items-center gap-4 mb-2 p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm transition-colors duration-300">
                 <span class="text-sm font-semibold text-slate-600 dark:text-slate-400 mr-2">Toggle Visibility:</span>
                 <label class="inline-flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-                    <input type="checkbox" id="toggle-india" class="w-4 h-4 text-blue-600 rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-blue-500 cursor-pointer" checked>
+                    <input type="checkbox" id="toggle-india" class="w-4 h-4 text-blue-600 rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-blue-500 cursor-pointer">
                     <span class="ml-2 text-sm font-medium text-slate-800 dark:text-slate-200">India</span>
                 </label>
                 <label class="inline-flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-                    <input type="checkbox" id="toggle-mh" class="w-4 h-4 text-blue-600 rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-blue-500 cursor-pointer" checked>
+                    <input type="checkbox" id="toggle-mh" class="w-4 h-4 text-blue-600 rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-blue-500 cursor-pointer">
                     <span class="ml-2 text-sm font-medium text-slate-800 dark:text-slate-200">Maharashtra</span>
                 </label>
                 <label class="inline-flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-                    <input type="checkbox" id="toggle-tn" class="w-4 h-4 text-blue-600 rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-blue-500 cursor-pointer" checked>
+                    <input type="checkbox" id="toggle-tn" class="w-4 h-4 text-blue-600 rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-blue-500 cursor-pointer">
                     <span class="ml-2 text-sm font-medium text-slate-800 dark:text-slate-200">Tamil Nadu</span>
                 </label>
                 <label class="inline-flex items-center cursor-pointer hover:opacity-80 transition-opacity">
@@ -286,6 +286,7 @@
                     {
                         label: 'India Nominal GDP',
                         data: indiaGdpData,
+                        hidden: true, // Hidden by default
                         borderWidth: 4,
                         pointRadius: 0,
                         pointHoverRadius: 8,
@@ -305,6 +306,7 @@
                     {
                         label: 'Maharashtra Nominal GDP',
                         data: mhGdpData,
+                        hidden: true, // Hidden by default
                         borderWidth: 4,
                         pointRadius: 0,
                         pointHoverRadius: 8,
@@ -324,6 +326,7 @@
                     {
                         label: 'Tamil Nadu Nominal GDP',
                         data: tnGdpData,
+                        hidden: true, // Hidden by default
                         borderWidth: 4,
                         pointRadius: 0,
                         pointHoverRadius: 8,
@@ -398,7 +401,6 @@
                                 const year = context.label;
                                 const dsLabel = context.dataset.label;
                                 
-                                // Emojis removed from prefix variables
                                 let partyInfo, prefix, role;
                                 if (dsLabel === 'India Nominal GDP') {
                                     partyInfo = getIndiaPartyInfo(year);
@@ -615,3 +617,5 @@
     </script>
 </body>
 </html>
+
+
