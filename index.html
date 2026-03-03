@@ -470,13 +470,15 @@
                         zoom: {
                             pan: {
                                 enabled: true,
-                                mode: 'xy', // Changed from 'y' to 'xy' to enable horizontal panning
+                                mode: 'xy',
+                                // Removed overScaleMode here so you can freely drag the main chart area again
                                 onPan: () => document.getElementById('resetZoom').classList.remove('hidden')
                             },
                             zoom: {
                                 wheel: { enabled: true },
                                 pinch: { enabled: true },
-                                mode: 'xy', // Changed from 'y' to 'xy' to enable horizontal zooming
+                                mode: 'xy',
+                                overScaleMode: 'xy', // Kept here so axis-specific scrolling still works
                                 onZoom: () => document.getElementById('resetZoom').classList.remove('hidden')
                             }
                         },
