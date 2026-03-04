@@ -45,10 +45,6 @@
     </script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Hammer.js for touch gestures (required for mobile panning/zooming) -->
-    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
-    <!-- Chart.js Zoom Plugin -->
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
     <!-- Expressive Typography -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
@@ -64,11 +60,6 @@
         }
         .chip-hover:hover {
             transform: translateY(-1px);
-        }
-        select {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
         }
     </style>
 </head>
@@ -92,40 +83,12 @@
             <p class="text-m3-light-onSurfaceVariant dark:text-m3-dark-onSurfaceVariant mb-8 text-lg leading-relaxed max-w-4xl">
                 Tracing the economic trajectory of National GDP against major states. Lines dynamically change color to represent the <strong>political party in power</strong>.
             </p>
-            
-            <!-- Custom Dynamic Legend (M3 Assist Chips) -->
-            <div class="flex flex-wrap gap-2.5 mb-6">
-                <div class="chip-hover flex items-center bg-m3-light-bg dark:bg-m3-dark-bg px-4 py-2 rounded-full shadow-sm border border-m3-light-outline/20 dark:border-m3-dark-outline/20">
-                    <div class="w-3.5 h-3.5 bg-[#F97316] rounded-full mr-2.5 shadow-inner"></div><span class="font-medium text-sm">BJP / NDA</span>
-                </div>
-                <div class="chip-hover flex items-center bg-m3-light-bg dark:bg-m3-dark-bg px-4 py-2 rounded-full shadow-sm border border-m3-light-outline/20 dark:border-m3-dark-outline/20">
-                    <div class="w-3.5 h-3.5 bg-[#2563EB] rounded-full mr-2.5 shadow-inner"></div><span class="font-medium text-sm">Congress / UPA</span>
-                </div>
-                <div class="chip-hover flex items-center bg-m3-light-bg dark:bg-m3-dark-bg px-4 py-2 rounded-full shadow-sm border border-m3-light-outline/20 dark:border-m3-dark-outline/20">
-                    <div class="w-3.5 h-3.5 bg-[#DC2626] rounded-full mr-2.5 shadow-inner"></div><span class="font-medium text-sm">SP / DMK (Regional)</span>
-                </div>
-                <div class="chip-hover flex items-center bg-m3-light-bg dark:bg-m3-dark-bg px-4 py-2 rounded-full shadow-sm border border-m3-light-outline/20 dark:border-m3-dark-outline/20">
-                    <div class="w-3.5 h-3.5 bg-[#16A34A] rounded-full mr-2.5 shadow-inner"></div><span class="font-medium text-sm">AIADMK / Janata</span>
-                </div>
-                <div class="chip-hover flex items-center bg-m3-light-bg dark:bg-m3-dark-bg px-4 py-2 rounded-full shadow-sm border border-m3-light-outline/20 dark:border-m3-dark-outline/20">
-                    <div class="w-3.5 h-3.5 bg-[#1E3A8A] rounded-full mr-2.5 shadow-inner"></div><span class="font-medium text-sm">BSP</span>
-                </div>
-                <div class="chip-hover flex items-center bg-m3-light-bg dark:bg-m3-dark-bg px-4 py-2 rounded-full shadow-sm border border-m3-light-outline/20 dark:border-m3-dark-outline/20">
-                    <div class="w-3.5 h-3.5 bg-[#10B981] rounded-full mr-2.5 shadow-inner"></div><span class="font-medium text-sm">MVA (MH)</span>
-                </div>
-                <div class="chip-hover flex items-center bg-m3-light-bg dark:bg-m3-dark-bg px-4 py-2 rounded-full shadow-sm border border-m3-light-outline/20 dark:border-m3-dark-outline/20">
-                    <div class="w-3.5 h-3.5 bg-[#9CA3AF] rounded-full mr-2.5 shadow-inner"></div><span class="font-medium text-sm">President's Rule</span>
-                </div>
-                <div class="chip-hover flex items-center bg-m3-light-bg dark:bg-m3-dark-bg px-4 py-2 rounded-full shadow-sm border border-m3-light-outline/20 dark:border-m3-dark-outline/20">
-                    <div class="w-4 h-0 border-t-2 border-m3-light-onSurface dark:border-m3-dark-onSurface border-dashed mr-2"></div><span class="font-medium text-sm">Exponential Trendline (Best Fit)</span>
-                </div>
-            </div>
 
-            <div class="h-px w-full bg-m3-light-outline/20 dark:bg-m3-dark-outline/20 my-6"></div>
+            <div class="h-px w-full bg-m3-light-outline/20 dark:bg-m3-dark-outline/20 mb-6"></div>
 
-            <!-- Visibility Filters (M3 Filter Chips) -->
-            <div class="mb-6 flex flex-col md:flex-row md:items-center gap-4">
-                <span class="text-sm font-semibold tracking-wide uppercase text-m3-light-onSurfaceVariant dark:text-m3-dark-onSurfaceVariant">Filter Data:</span>
+            <!-- Controls: Filters & View Toggles -->
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                <!-- Visibility Filters (M3 Filter Chips) -->
                 <div class="flex flex-wrap gap-3">
                     <label class="cursor-pointer relative">
                         <input type="checkbox" id="toggle-india" class="peer sr-only">
@@ -156,31 +119,15 @@
                         </div>
                     </label>
                 </div>
-            </div>
-
-            <!-- Chart Controls (M3 Buttons) -->
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                <!-- Trendline Era Selector (M3 Tonal Style) -->
-                <div class="relative w-full sm:w-auto">
-                    <select id="trendlineEra" class="w-full sm:w-auto bg-m3-light-secondaryContainer dark:bg-m3-dark-secondaryContainer text-m3-light-onSecondaryContainer dark:text-m3-dark-onSecondaryContainer px-6 py-3.5 pr-10 rounded-full font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-m3-light-primary dark:focus:ring-m3-dark-primary cursor-pointer">
-                        <option value="1947" class="bg-m3-light-surface dark:bg-m3-dark-surface">Baseline: Since 1947 (Independence)</option>
-                        <option value="1991" selected class="bg-m3-light-surface dark:bg-m3-dark-surface">Baseline: Since 1991 (Liberalization)</option>
-                        <option value="2000" class="bg-m3-light-surface dark:bg-m3-dark-surface">Baseline: Since 2000</option>
-                        <option value="2014" class="bg-m3-light-surface dark:bg-m3-dark-surface">Baseline: Since 2014</option>
-                    </select>
-                    <!-- Custom Dropdown Arrow -->
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-current">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
-                </div>
 
                 <div class="flex flex-col sm:flex-row w-full lg:w-auto justify-end items-stretch sm:items-center gap-3">
-                    <button id="resetZoom" class="px-6 py-3.5 bg-transparent border-2 border-m3-light-outline dark:border-m3-dark-outline text-m3-light-primary dark:text-m3-dark-primary hover:bg-m3-light-primary/10 dark:hover:bg-m3-dark-primary/10 rounded-full text-sm font-bold transition-all flex-shrink-0 hidden">
-                        Reset Zoom
+                    <!-- Era Toggle Button -->
+                    <button id="toggleEra" class="px-8 py-3.5 bg-m3-light-secondaryContainer dark:bg-m3-dark-secondaryContainer text-m3-light-onSecondaryContainer dark:text-m3-dark-onSecondaryContainer hover:opacity-80 rounded-full text-sm font-bold transition-all shadow-sm flex-shrink-0 tracking-wide">
+                        View Since 1947
                     </button>
-                    <!-- Primary Filled Button -->
-                    <button id="toggleScale" class="px-8 py-3.5 bg-m3-light-primary dark:bg-m3-dark-primary text-m3-light-onPrimary dark:text-m3-dark-onPrimary hover:opacity-90 rounded-full text-sm font-bold transition-all shadow-md flex-shrink-0 tracking-wide">
-                        View Logarithmic Scale
+                    <!-- Scale Toggle Button -->
+                    <button id="toggleScale" class="px-8 py-3.5 bg-m3-light-secondaryContainer dark:bg-m3-dark-secondaryContainer text-m3-light-onSecondaryContainer dark:text-m3-dark-onSecondaryContainer hover:opacity-80 rounded-full text-sm font-bold transition-all shadow-sm flex-shrink-0 tracking-wide">
+                        Switch to Logarithmic Scale
                     </button>
                 </div>
             </div>
@@ -188,8 +135,38 @@
 
         <!-- Chart Container -->
         <div class="m3-card bg-m3-light-surface dark:bg-m3-dark-surface rounded-[2rem] shadow-sm p-4 md:p-8 w-full border border-m3-light-outline/20 dark:border-m3-dark-outline/20">
-            <div class="relative h-[65vh] min-h-[500px] w-full">
+            <div class="relative h-[65vh] min-h-[500px] w-full mb-6">
                 <canvas id="gdpChart"></canvas>
+            </div>
+            
+            <div class="h-px w-full bg-m3-light-outline/20 dark:bg-m3-dark-outline/20 my-6"></div>
+
+            <!-- Custom Dynamic Legend (M3 Assist Chips moved to bottom) -->
+            <div class="flex flex-wrap gap-2.5">
+                <div class="chip-hover flex items-center bg-m3-light-bg dark:bg-m3-dark-bg px-4 py-2 rounded-full shadow-sm border border-m3-light-outline/20 dark:border-m3-dark-outline/20">
+                    <div class="w-3.5 h-3.5 bg-[#F97316] rounded-full mr-2.5 shadow-inner"></div><span class="font-medium text-sm">BJP / NDA</span>
+                </div>
+                <div class="chip-hover flex items-center bg-m3-light-bg dark:bg-m3-dark-bg px-4 py-2 rounded-full shadow-sm border border-m3-light-outline/20 dark:border-m3-dark-outline/20">
+                    <div class="w-3.5 h-3.5 bg-[#2563EB] rounded-full mr-2.5 shadow-inner"></div><span class="font-medium text-sm">Congress / UPA</span>
+                </div>
+                <div class="chip-hover flex items-center bg-m3-light-bg dark:bg-m3-dark-bg px-4 py-2 rounded-full shadow-sm border border-m3-light-outline/20 dark:border-m3-dark-outline/20">
+                    <div class="w-3.5 h-3.5 bg-[#DC2626] rounded-full mr-2.5 shadow-inner"></div><span class="font-medium text-sm">SP / DMK (Regional)</span>
+                </div>
+                <div class="chip-hover flex items-center bg-m3-light-bg dark:bg-m3-dark-bg px-4 py-2 rounded-full shadow-sm border border-m3-light-outline/20 dark:border-m3-dark-outline/20">
+                    <div class="w-3.5 h-3.5 bg-[#16A34A] rounded-full mr-2.5 shadow-inner"></div><span class="font-medium text-sm">AIADMK / Janata</span>
+                </div>
+                <div class="chip-hover flex items-center bg-m3-light-bg dark:bg-m3-dark-bg px-4 py-2 rounded-full shadow-sm border border-m3-light-outline/20 dark:border-m3-dark-outline/20">
+                    <div class="w-3.5 h-3.5 bg-[#1E3A8A] rounded-full mr-2.5 shadow-inner"></div><span class="font-medium text-sm">BSP</span>
+                </div>
+                <div class="chip-hover flex items-center bg-m3-light-bg dark:bg-m3-dark-bg px-4 py-2 rounded-full shadow-sm border border-m3-light-outline/20 dark:border-m3-dark-outline/20">
+                    <div class="w-3.5 h-3.5 bg-[#10B981] rounded-full mr-2.5 shadow-inner"></div><span class="font-medium text-sm">MVA (MH)</span>
+                </div>
+                <div class="chip-hover flex items-center bg-m3-light-bg dark:bg-m3-dark-bg px-4 py-2 rounded-full shadow-sm border border-m3-light-outline/20 dark:border-m3-dark-outline/20">
+                    <div class="w-3.5 h-3.5 bg-[#9CA3AF] rounded-full mr-2.5 shadow-inner"></div><span class="font-medium text-sm">President's Rule</span>
+                </div>
+                <div class="chip-hover flex items-center bg-m3-light-bg dark:bg-m3-dark-bg px-4 py-2 rounded-full shadow-sm border border-m3-light-outline/20 dark:border-m3-dark-outline/20">
+                    <div class="w-4 h-0 border-t-2 border-m3-light-onSurface dark:border-m3-dark-onSurface border-dashed mr-2"></div><span class="font-medium text-sm">Trendline</span>
+                </div>
             </div>
         </div>
     </div>
@@ -217,6 +194,9 @@
                 applyChartTheme(window.gdpChartInstance);
             }
         });
+
+        // Global state for current Era calculation
+        let currentEra = 1991;
 
         // 1. Core Data State
         const dataState = {
@@ -277,7 +257,7 @@
         }
 
         // Calculate Exponential Line of Best Fit (Least Squares Regression)
-        function calculateBestFitTrendlines(startYear = 1991) {
+        function calculateBestFitTrendlines(startYear) {
             const startIndex = dataState.years.indexOf(String(startYear));
             if (startIndex === -1) return;
 
@@ -421,8 +401,7 @@
         function initApp() {
             // First, prep the arrays
             initializeData();
-            const initialEra = parseInt(document.getElementById('trendlineEra').value) || 1991;
-            calculateBestFitTrendlines(initialEra);
+            calculateBestFitTrendlines(currentEra);
 
             const ctx = document.getElementById('gdpChart').getContext('2d');
             let isLogScale = false;
@@ -516,7 +495,7 @@
                             pointBackgroundColor: ctx => getPartyInfo(dataState.years[ctx.dataIndex]).color,
                             pointBorderColor: '#ffffff'
                         },
-                        // Trendline Datasets - Thinner (1.5) and drawn on top (order: 0)
+                        // Trendline Datasets
                         {
                             label: 'India Trendline',
                             data: dataState.indiaTrend,
@@ -572,7 +551,7 @@
                     ]
                 },
                 options: {
-                    events: ['click'], 
+                    events: ['mousemove', 'mouseout', 'click', 'touchstart', 'touchmove'], 
                     responsive: true,
                     maintainAspectRatio: false,
                     interaction: {
@@ -581,20 +560,6 @@
                     },
                     plugins: {
                         legend: { display: false },
-                        zoom: {
-                            pan: {
-                                enabled: true,
-                                mode: 'xy',
-                                onPan: () => document.getElementById('resetZoom').classList.remove('hidden')
-                            },
-                            zoom: {
-                                wheel: { enabled: true },
-                                pinch: { enabled: true },
-                                mode: 'xy',
-                                overScaleMode: 'xy', 
-                                onZoom: () => document.getElementById('resetZoom').classList.remove('hidden')
-                            }
-                        },
                         tooltip: {
                             filter: function(tooltipItem) {
                                 return !tooltipItem.dataset.label.includes('Trendline');
@@ -678,6 +643,7 @@
                             }
                         },
                         x: {
+                            min: '1991', // Set default initial view restriction
                             title: {
                                 display: true,
                                 text: 'Year',
@@ -722,10 +688,22 @@
                 });
             });
 
-            // Connect Era Selector
-            document.getElementById('trendlineEra').addEventListener('change', function() {
-                const selectedYear = parseInt(this.value);
-                calculateBestFitTrendlines(selectedYear);
+            // Connect Era Toggle (M3 style toggle logic)
+            document.getElementById('toggleEra').addEventListener('click', function() {
+                const isFullHistory = currentEra === 1991;
+                currentEra = isFullHistory ? 1947 : 1991;
+                
+                if (isFullHistory) {
+                    this.innerText = 'View Since 1991';
+                } else {
+                    this.innerText = 'View Since 1947';
+                }
+
+                // Recalculate trendlines based on new era
+                calculateBestFitTrendlines(currentEra);
+                
+                // Restrict the graph's X-axis start point
+                window.gdpChartInstance.options.scales.x.min = String(currentEra);
                 window.gdpChartInstance.update();
             });
 
@@ -737,30 +715,10 @@
                 
                 if (isLogScale) {
                     this.innerText = 'Switch to Linear Scale';
-                    // Tonal Button Style for Active State
-                    this.className = 'px-8 py-3.5 bg-m3-light-secondaryContainer dark:bg-m3-dark-secondaryContainer text-m3-light-onSecondaryContainer dark:text-m3-dark-onSecondaryContainer hover:opacity-80 rounded-full text-sm font-bold transition-all shadow-sm flex-shrink-0 tracking-wide';
                 } else {
-                    this.innerText = 'View Logarithmic Scale';
-                    // Primary Filled Button for Default State
-                    this.className = 'px-8 py-3.5 bg-m3-light-primary dark:bg-m3-dark-primary text-m3-light-onPrimary dark:text-m3-dark-onPrimary hover:opacity-90 rounded-full text-sm font-bold transition-all shadow-md flex-shrink-0 tracking-wide';
+                    this.innerText = 'Switch to Logarithmic Scale';
                 }
                 window.gdpChartInstance.update();
-            });
-
-            // Connect Reset Zoom
-            document.getElementById('resetZoom').addEventListener('click', function() {
-                window.gdpChartInstance.resetZoom();
-                this.classList.add('hidden');
-            });
-
-            // Connect outside click to dismiss tooltips
-            document.addEventListener('click', function(event) {
-                const canvas = document.getElementById('gdpChart');
-                if (event.target !== canvas) {
-                    window.gdpChartInstance.setActiveElements([]);
-                    window.gdpChartInstance.tooltip.setActiveElements([], {x: 0, y: 0});
-                    window.gdpChartInstance.update();
-                }
             });
 
             // Trigger async data fetch at the very end
@@ -806,7 +764,6 @@
                     });
 
                     if (dataUpdated) {
-                        const currentEra = parseInt(document.getElementById('trendlineEra').value) || 1991;
                         calculateBestFitTrendlines(currentEra);
                         if(window.gdpChartInstance) window.gdpChartInstance.update();
                         console.log("Successfully synced India & States Historical GDP with live World Bank data.");
