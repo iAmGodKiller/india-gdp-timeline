@@ -77,7 +77,7 @@
                     <div class="w-4 h-4 bg-[#9CA3AF] rounded-full mr-2 shadow-inner"></div><span class="font-medium text-xs md:text-sm dark:text-slate-200">President's Rule</span>
                 </div>
                 <div class="legend-item flex items-center bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 border-dashed">
-                    <div class="w-4 h-0 border-t-2 border-slate-500 border-dashed mr-2"></div><span class="font-medium text-xs md:text-sm dark:text-slate-200">Historical Avg Trendline (CAGR)</span>
+                    <div class="w-4 h-0 border-t-2 border-slate-500 border-dashed mr-2"></div><span class="font-medium text-xs md:text-sm dark:text-slate-200">Exponential Trendline (Best Fit)</span>
                 </div>
             </div>
 
@@ -103,13 +103,26 @@
             </div>
 
             <!-- Chart Controls -->
-            <div class="flex flex-col sm:flex-row justify-end items-center mt-4 gap-3">
-                <button id="resetZoom" class="px-5 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600 rounded-lg text-sm font-semibold transition shadow-sm flex-shrink-0 hidden">
-                    Reset Zoom
-                </button>
-                <button id="toggleScale" class="px-5 py-2.5 bg-slate-800 dark:bg-blue-600 text-white hover:bg-slate-700 dark:hover:bg-blue-700 rounded-lg text-sm font-semibold transition shadow-md flex-shrink-0">
-                    View Logarithmic Scale
-                </button>
+            <div class="flex flex-col sm:flex-row justify-between items-center mt-4 gap-3">
+                <!-- Trendline Era Selector -->
+                <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-700 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 w-full sm:w-auto">
+                    <label for="trendlineEra" class="text-sm font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">Trend Baseline:</label>
+                    <select id="trendlineEra" class="bg-transparent border-none text-slate-800 dark:text-slate-100 text-sm font-medium focus:ring-0 cursor-pointer outline-none w-full">
+                        <option value="1947" class="bg-white dark:bg-slate-700">Since 1947 (Independence)</option>
+                        <option value="1991" selected class="bg-white dark:bg-slate-700">Since 1991 (Liberalization)</option>
+                        <option value="2000" class="bg-white dark:bg-slate-700">Since 2000</option>
+                        <option value="2014" class="bg-white dark:bg-slate-700">Since 2014</option>
+                    </select>
+                </div>
+
+                <div class="flex flex-col sm:flex-row justify-end items-center gap-3 w-full sm:w-auto">
+                    <button id="resetZoom" class="px-5 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600 rounded-lg text-sm font-semibold transition shadow-sm flex-shrink-0 hidden">
+                        Reset Zoom
+                    </button>
+                    <button id="toggleScale" class="px-5 py-2.5 bg-slate-800 dark:bg-blue-600 text-white hover:bg-slate-700 dark:hover:bg-blue-700 rounded-lg text-sm font-semibold transition shadow-md flex-shrink-0">
+                        View Logarithmic Scale
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -200,15 +213,39 @@
             }
         }
 
-        // Calculate Compound Annual Growth Rate (CAGR) Trendlines
-        function calculateCagrTrendlines() {
-            const numYears = dataState.years.length - 1;
-            
+        // Calculate Exponential Line of Best Fit (Least Squares Regression)
+        function calculateBestFitTrendlines(startYear = 1991) {
+            const startIndex = dataState.years.indexOf(String(startYear));
+            if (startIndex === -1) return;
+
             const makeTrend = (dataArray) => {
-                const start = dataArray[0];
-                const end = dataArray[dataArray.length - 1];
-                const cagr = Math.pow(end / start, 1 / numYears) - 1;
-                return dataArray.map((_, i) => parseFloat((start * Math.pow(1 + cagr, i)).toFixed(4)));
+                let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+                let count = 0;
+
+                // 1. Convert GDP to Natural Log to find the exponential regression for the SELECTED era
+                for (let i = startIndex; i < dataArray.length; i++) {
+                    let x = i - startIndex; // Normalize x so the start year is x=0
+                    let y = Math.log(dataArray[i]); 
+                    sumX += x;
+                    sumY += y;
+                    sumXY += x * y;
+                    sumXX += x * x;
+                    count++;
+                }
+
+                // 2. Calculate the slope (m) and intercept (c) of the log-linear line
+                let m = (count * sumXY - sumX * sumY) / (count * sumXX - sumX * sumX);
+                let c = (sumY - m * sumX) / count;
+                
+                // 3. Convert back out of log scale for the graph
+                let A = Math.exp(c);
+
+                return dataArray.map((_, i) => {
+                    // Return null for years before the selected era so the trendline only draws for the relevant period
+                    if (i < startIndex) return null;
+                    let x = i - startIndex;
+                    return parseFloat((A * Math.exp(m * x)).toFixed(4));
+                });
             };
 
             dataState.indiaTrend.length = 0; dataState.indiaTrend.push(...makeTrend(dataState.indiaGdp));
@@ -316,7 +353,8 @@
         function initApp() {
             // First, prep the arrays
             initializeData();
-            calculateCagrTrendlines();
+            const initialEra = parseInt(document.getElementById('trendlineEra').value) || 1991;
+            calculateBestFitTrendlines(initialEra);
 
             const ctx = document.getElementById('gdpChart').getContext('2d');
             let isLogScale = false;
@@ -499,6 +537,10 @@
                                     const year = context.label;
                                     const dsLabel = context.dataset.label;
                                     
+                                    if (dsLabel.includes('Trendline')) {
+                                        return `📈 Expected (Best Fit): ₹${context.raw} LC`;
+                                    }
+
                                     let partyInfo, prefix, role;
                                     if (dsLabel === 'India Nominal GDP') {
                                         partyInfo = getIndiaPartyInfo(year);
@@ -603,6 +645,13 @@
                 });
             });
 
+            // Connect Era Selector
+            document.getElementById('trendlineEra').addEventListener('change', function() {
+                const selectedYear = parseInt(this.value);
+                calculateBestFitTrendlines(selectedYear);
+                window.gdpChartInstance.update();
+            });
+
             // Connect Scale Toggle
             document.getElementById('toggleScale').addEventListener('click', function() {
                 isLogScale = !isLogScale;
@@ -682,7 +731,8 @@
                     });
 
                     if (dataUpdated) {
-                        calculateCagrTrendlines();
+                        const currentEra = parseInt(document.getElementById('trendlineEra').value) || 1991;
+                        calculateBestFitTrendlines(currentEra);
                         if(window.gdpChartInstance) window.gdpChartInstance.update();
                         console.log("Successfully synced India & States Historical GDP with live World Bank data.");
                     }
