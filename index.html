@@ -195,8 +195,9 @@
             }
         });
 
-        // Global state for current Era calculation
+        // Global state for current settings
         let currentEra = 1991;
+        let isLogScale = false;
 
         // 1. Core Data State
         const dataState = {
@@ -290,6 +291,34 @@
             dataState.mhTrend.length = 0; dataState.mhTrend.push(...makeTrend(dataState.mhGdp));
             dataState.tnTrend.length = 0; dataState.tnTrend.push(...makeTrend(dataState.tnGdp));
             dataState.upTrend.length = 0; dataState.upTrend.push(...makeTrend(dataState.upGdp));
+        }
+
+        // Dynamic Y-Axis Minimum padding generator
+        function updateYAxisMin() {
+            if (!window.gdpChartInstance) return;
+            const chart = window.gdpChartInstance;
+            const startIndex = Math.max(0, dataState.years.indexOf(String(currentEra)));
+            let minVal = Infinity;
+
+            const checkMin = (gdpArray, trendArray) => {
+                if (gdpArray[startIndex] !== undefined) minVal = Math.min(minVal, gdpArray[startIndex]);
+                if (trendArray[startIndex] !== null && trendArray[startIndex] !== undefined) minVal = Math.min(minVal, trendArray[startIndex]);
+            };
+
+            // Calculate floor boundary using exactly the visible lines at the start of the era
+            if (chart.isDatasetVisible(0)) checkMin(dataState.indiaGdp, dataState.indiaTrend);
+            if (chart.isDatasetVisible(1)) checkMin(dataState.mhGdp, dataState.mhTrend);
+            if (chart.isDatasetVisible(2)) checkMin(dataState.tnGdp, dataState.tnTrend);
+            if (chart.isDatasetVisible(3)) checkMin(dataState.upGdp, dataState.upTrend);
+
+            if (minVal === Infinity) {
+                chart.options.scales.y.min = isLogScale ? 0.01 : 0;
+            } else {
+                // Tightly hug the bottom: Start Y-Axis exactly at (or 2% below) the era's economy size to eliminate dead space
+                let calcMin = minVal * 0.98;
+                calcMin = parseFloat(calcMin.toFixed(2));
+                chart.options.scales.y.min = isLogScale ? Math.max(0.01, calcMin) : Math.max(0, calcMin);
+            }
         }
 
         // 2. Political History Helpers
@@ -404,7 +433,6 @@
             calculateBestFitTrendlines(currentEra);
 
             const ctx = document.getElementById('gdpChart').getContext('2d');
-            let isLogScale = false;
 
             // Build Chart
             window.gdpChartInstance = new Chart(ctx, {
@@ -624,10 +652,9 @@
                     scales: {
                         y: {
                             type: 'linear',
-                            min: -2,
                             title: {
                                 display: true,
-                                text: 'Gross Domestic Product (in Lakh Crores ₹)',
+                                text: 'Gross Domestic Product',
                                 font: { family: 'Outfit', weight: '600', size: 14 },
                                 color: '#49454f'
                             },
@@ -636,9 +663,24 @@
                                 font: { family: 'Outfit' },
                                 color: '#49454f',
                                 callback: function(value) {
-                                    if (value < 0) return '';
-                                    let formattedValue = Number.isInteger(value) ? value : Number(value).toFixed(1);
-                                    return '₹' + formattedValue + ' LC';
+                                    if (value <= 0) return '';
+                                    
+                                    // Custom Logarithmic Scale Filter: Prevents Y-axis text overlap!
+                                    if (isLogScale) {
+                                        const logVal = Math.log10(value);
+                                        const cleanDigit = Math.round(value / Math.pow(10, Math.floor(logVal)));
+                                        // Only show major log milestones (1, 2, and 5)
+                                        if (cleanDigit !== 1 && cleanDigit !== 2 && cleanDigit !== 5) {
+                                            return null;
+                                        }
+                                    }
+
+                                    let formattedValue;
+                                    if (value >= 100) formattedValue = value.toFixed(0);
+                                    else if (value >= 10) formattedValue = value.toFixed(1);
+                                    else formattedValue = value.toFixed(2);
+                                    
+                                    return '₹' + parseFloat(formattedValue) + ' LC';
                                 }
                             }
                         },
@@ -671,6 +713,8 @@
 
             // Set initial theme colors
             applyChartTheme(window.gdpChartInstance);
+            updateYAxisMin();
+            window.gdpChartInstance.update();
 
             // Connect Filters
             const toggles = [
@@ -684,11 +728,12 @@
                 document.getElementById(toggle.id).addEventListener('change', function() {
                     window.gdpChartInstance.setDatasetVisibility(toggle.index, this.checked);
                     window.gdpChartInstance.setDatasetVisibility(toggle.trendIndex, this.checked);
+                    updateYAxisMin();
                     window.gdpChartInstance.update();
                 });
             });
 
-            // Connect Era Toggle (M3 style toggle logic)
+            // Connect Era Toggle
             document.getElementById('toggleEra').addEventListener('click', function() {
                 const isFullHistory = currentEra === 1991;
                 currentEra = isFullHistory ? 1947 : 1991;
@@ -704,20 +749,21 @@
                 
                 // Restrict the graph's X-axis start point
                 window.gdpChartInstance.options.scales.x.min = String(currentEra);
+                updateYAxisMin();
                 window.gdpChartInstance.update();
             });
 
-            // Connect Scale Toggle (M3 style toggle logic)
+            // Connect Scale Toggle
             document.getElementById('toggleScale').addEventListener('click', function() {
                 isLogScale = !isLogScale;
                 window.gdpChartInstance.options.scales.y.type = isLogScale ? 'logarithmic' : 'linear';
-                window.gdpChartInstance.options.scales.y.min = isLogScale ? 0.01 : -2;
                 
                 if (isLogScale) {
                     this.innerText = 'Switch to Linear Scale';
                 } else {
                     this.innerText = 'Switch to Logarithmic Scale';
                 }
+                updateYAxisMin();
                 window.gdpChartInstance.update();
             });
 
@@ -765,6 +811,7 @@
 
                     if (dataUpdated) {
                         calculateBestFitTrendlines(currentEra);
+                        updateYAxisMin();
                         if(window.gdpChartInstance) window.gdpChartInstance.update();
                         console.log("Successfully synced India & States Historical GDP with live World Bank data.");
                     }
